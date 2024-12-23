@@ -14,25 +14,25 @@ export const signup = async (req, res) => {
       if (!emailPattern.test(email)) {
         return res.status("400").json({
           status: "error",
-          message: "Invalid : Please fill a Valid E-mail.",
+          msg: "Invalid : Please fill a Valid E-mail.",
         });
       }
       if (!namePattern.test(fullName)) {
         return res.status("400").json({
           status: "error",
-          message: "Invalid : Please fill a Valid Name.",
+          msg: "Invalid : Please fill a Valid Name.",
         });
       }
       if (password.length < 6 || password.length > 15) {
         return res.status("400").json({
           status: "error",
-          message: "Invalid : Password must be Between 6-15 Letters..!!",
+          msg: "Invalid : Password must be Between 6-15 Letters..!!",
         });
       }
       if (passPattern.test(password)) {
         return res.status("400").json({
           status: "error",
-          message: "Invalid : Password must not Contain any White Space..!!",
+          msg: "Invalid : Password must not Contain any White Space..!!",
         });
       }
       const user = await User.findOne({ email });
@@ -40,7 +40,7 @@ export const signup = async (req, res) => {
       if (user) {
         return res
           .status("400")
-          .json({ status: "error", message: "Email Already Exists..!!" }); // another way of writing if else condition only when there is single line of code.
+          .json({ status: "error", msg: "Email Already Exists..!!" }); // another way of writing if else condition only when there is single line of code.
       }
       const salt = await bcrypt.genSalt(10); // this function return promis which is why we have to wait for the response .
       const hashedPassword = await bcrypt.hash(password, salt);
@@ -61,18 +61,18 @@ export const signup = async (req, res) => {
           .then(() => {
             res
               .status("201")
-              .json({ status: "success", message: "Data Added Successfully" });
+              .json({ status: "success", msg: "Data Added Successfully" });
           })
           .catch((error) => {
             res
               .status("500")
-              .json({ status: "error", message: "Failed To Add Data", error }); // to be continued........................................................
+              .json({ status: "error", msg: "Failed To Add Data", error }); // to be continued........................................................
           });
       }
     } else {
       res
         .status("400")
-        .json({ status: "error", message: "Please Fill All The Fields..!!" });
+        .json({ status: "error", msg: "Please Fill All The Fields..!!" });
     }
   } catch (error) {
     console.log("error in auth.controller file Signin", error);
@@ -80,12 +80,51 @@ export const signup = async (req, res) => {
   }
 };
 
-export const login = (req, res) => {
-  res.send("In login Route");
+export const login = async (req, res) => {
+  // res.send("In login Route");
+  const { email, password } = req.body;
+  let msg_text = {};
+  let err = false;
+  try {
+    let userDetail = await User.findOne({ email });
+    let isPasswordCorrect = await bcrypt.compare(password, userDetail.password);
+
+    if (!userDetail || !isPasswordCorrect) {
+      msg_text = { status: "error", msg: "Invalid credentials" };
+      err = true;
+    }
+    console.log(userDetail);
+
+    if (err === false) {
+      generateToken(userDetail._id, res);
+      // return res.status("200").json({
+      //   id: userDetail._id,
+      //   name: userDetail.fullName,
+      //   email: userDetail.email,
+      // });
+      return res.status("200").json("Welcome To LinkUp Chat..");
+    } else {
+      return res.status("404").json(msg_text);
+    }
+  } catch (error) {
+    console.log("error in auth.controller file Login", error);
+    return res
+      .status("500")
+      .json({ status: "error", msg: "Internal Server Error.." });
+  }
 };
 
 export const logout = (req, res) => {
-  res.send("In Logout Route");
+  // res.send("In Logout Route");
+  try {
+    res.cookie("cookie_token", "", { maxAge: 0 });
+    res.status("200").json({
+      status: "success",
+      msg: "You’ve been logged out. See you soon!",
+    });
+  } catch (error) {
+    console.log("error in auth.controller file Logout", error);
+    res.status("500").json({ status: "error", msg: "Internal Server Error.." });
+  }
 };
-
 //to be continued....https://www.youtube.com/watch?v=ntKkVrQqBYY
