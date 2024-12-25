@@ -55,7 +55,6 @@ export const signup = async (req, res) => {
       });
 
       if (newUser) {
-        let dataStored = false;
         generateToken(newUser._id, res);
         newUser
           .save()
@@ -157,7 +156,7 @@ export const updateProfile = async (req, res) => {
       });
     }
   } catch (error) {
-    console.log("caught error in updateProfile", error);
+    console.log("caught error in auth.controller updateProfile", error);
     res.status(400).json({ status: "error", msg: "Internal Server Error" });
   }
 };
@@ -169,7 +168,7 @@ export const check = (req, res) => {
       return res.status(200).json({ status: "success", msg: user });
     }
   } catch (error) {
-    console.log("caugth error in authCheck", error);
+    console.log("caugth error in auth.controller check", error);
     return res
       .status("404")
       .json({ status: "error", msg: "Internal Server Error" });
