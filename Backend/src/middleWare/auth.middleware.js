@@ -7,20 +7,20 @@ export const protectRoute = async (req, res, next) => {
 
     if (!token) {
       return res
-        .status("400")
+        .status(400)
         .json({ status: "error", msg: "Un-Authorised access..!!" });
     }
     const decode = jwt.verify(token, process.env.JWT_SECRET);
     if (!decode) {
       return res
-        .status("400")
+        .status(400)
         .json({ status: "error", msg: "Invalid Token..!!" });
     }
     const user = await User.findOne({ _id: decode.userId }).select("-password");
 
     if (!user) {
       return res
-        .status("404")
+        .status(404)
         .json({ status: "error", msg: "User Not Found..!!" });
     }
 
